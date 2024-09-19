@@ -13,106 +13,284 @@
     <div class="container mt-5">
       <h1>Expense Tracker</h1>
 
-      <!-- Form untuk menambahkan jumlah uang pengguna -->
-      <form action="/add_money" method="POST" class="mb-4">
-        <div class="mb-3">
-          <label for="amount" class="form-label">Masukkan Uang Anda</label>
-          <input
-            type="number"
-            class="form-control"
-            id="amount"
-            name="amount"
-            required
-          />
-        </div>
-        <button type="submit" class="btn btn-primary">Simpan Uang</button>
-      </form>
-
-      <!-- Form untuk menambahkan kategori kustom -->
-      <form action="/add_category" method="POST" class="mb-4">
-        <div class="mb-3">
-          <label for="new_category" class="form-label"
-            >Tambah Kategori Baru</label
+      <!-- Tabs untuk memisahkan form tambah kategori, form pencatatan keuangan, dan form pemasukan uang -->
+      <ul class="nav nav-tabs" id="expenseTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link active"
+            id="form-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#form-tab-pane"
+            type="button"
+            role="tab"
+            aria-controls="form-tab-pane"
+            aria-selected="true"
           >
-          <input
-            type="text"
-            class="form-control"
-            id="new_category"
-            name="new_category"
-            required
-          />
-        </div>
-        <button type="submit" class="btn btn-secondary">Tambah Kategori</button>
-      </form>
-
-      <!-- Form untuk menambahkan sub kategori kustom -->
-      <form action="/add_subcategory" method="POST" class="mb-4">
-        <div class="mb-3">
-          <label for="main_category" class="form-label">Kategori Utama</label>
-          <select
-            id="main_category"
-            name="main_category"
-            class="form-select"
-            required
+            Pencatatan Keuangan
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="category-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#category-tab-pane"
+            type="button"
+            role="tab"
+            aria-controls="category-tab-pane"
+            aria-selected="false"
           >
-            <option value="">Pilih Kategori</option>
-            {% for category in categories %}
-            <option value="{{ category }}">{{ category }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="mb-3">
-          <label for="new_subcategory" class="form-label"
-            >Tambah Sub Kategori Baru</label
+            Tambah Kategori & Sub-Kategori
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            id="income-tab"
+            data-bs-toggle="tab"
+            data-bs-target="#income-tab-pane"
+            type="button"
+            role="tab"
+            aria-controls="income-tab-pane"
+            aria-selected="false"
           >
-          <input
-            type="text"
-            class="form-control"
-            id="new_subcategory"
-            name="new_subcategory"
-            required
-          />
+            Pencatatan Pemasukan Uang
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content mt-4" id="expenseTabContent">
+        <!-- Tab untuk Form Pencatatan Keuangan -->
+        <div
+          class="tab-pane fade show active"
+          id="form-tab-pane"
+          role="tabpanel"
+          aria-labelledby="form-tab"
+        >
+          <!-- Form pencatatan pengeluaran -->
+          <form action="/add" method="POST">
+            <div class="mb-3">
+              <label for="description" class="form-label"
+                >Nama Pengeluaran</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="description"
+                name="description"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label for="main_category" class="form-label"
+                >Kategori Utama</label
+              >
+              <select
+                id="main_category"
+                name="main_category"
+                class="form-select"
+                required
+              >
+                <option value="">Pilih Kategori</option>
+                {% for category in categories %}
+                <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="sub_category" class="form-label">Sub Kategori</label>
+              <select
+                id="sub_category"
+                name="sub_category"
+                class="form-select"
+                disabled
+                required
+              >
+                <option value="">Pilih Sub Kategori</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="expense_amount" class="form-label"
+                >Nominal Pengeluaran (Rp)</label
+              >
+              <input
+                type="number"
+                class="form-control"
+                id="expense_amount"
+                name="expense_amount"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-success">
+              Tambah Pengeluaran
+            </button>
+          </form>
+
+          <!-- Tabel pengeluaran -->
+          <table class="table mt-4">
+            <thead>
+              <tr>
+                <th scope="col">Deskripsi</th>
+                <th scope="col">Kategori</th>
+                <th scope="col">Sub Kategori</th>
+                <th scope="col">Nominal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for expense in expenses %}
+              <tr>
+                <td>{{ expense[0] }}</td>
+                <td>{{ expense[1] }}</td>
+                <td>{{ expense[2] }}</td>
+                <td>Rp {{ "{:,.0f}".format(expense[3]) }}</td>
+                <!-- Format Rupiah -->
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <!-- Menampilkan sisa uang pengguna -->
+          <h4>Sisa Uang Anda: Rp {{ "{:,.0f}".format(remaining_money) }}</h4>
+
+          <!-- Grafik pengeluaran per kategori -->
+          <canvas
+            id="expenseChart"
+            style="max-width: 400px; max-height: 400px;"
+          ></canvas>
         </div>
-        <button type="submit" class="btn btn-secondary">
-          Tambah Sub Kategori
-        </button>
-      </form>
 
-      <!-- Tabel pengeluaran -->
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Deskripsi</th>
-            <th scope="col">Kategori</th>
-            <th scope="col">Sub Kategori</th>
-            <th scope="col">Nominal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for expense in expenses %}
-          <tr>
-            <td>{{ expense[0] }}</td>
-            <td>{{ expense[1] }}</td>
-            <td>{{ expense[2] }}</td>
-            <td>{{ expense[3] }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+        <!-- Tab untuk Form Tambah Kategori -->
+        <div
+          class="tab-pane fade"
+          id="category-tab-pane"
+          role="tabpanel"
+          aria-labelledby="category-tab"
+        >
+          <!-- Form untuk menambahkan kategori kustom -->
+          <form action="/add_category" method="POST" class="mb-4">
+            <div class="mb-3">
+              <label for="new_category" class="form-label"
+                >Tambah Kategori Baru</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="new_category"
+                name="new_category"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-secondary">
+              Tambah Kategori
+            </button>
+          </form>
 
-      <!-- Menampilkan sisa uang pengguna -->
-      <h4>Sisa Uang Anda: {{ remaining_money }}</h4>
+          <!-- Form untuk menambahkan sub kategori kustom -->
+          <form action="/add_subcategory" method="POST" class="mb-4">
+            <div class="mb-3">
+              <label for="main_category" class="form-label"
+                >Kategori Utama</label
+              >
+              <select
+                id="main_category"
+                name="main_category"
+                class="form-select"
+                required
+              >
+                <option value="">Pilih Kategori</option>
+                {% for category in categories %}
+                <option value="{{ category }}">{{ category }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="new_subcategory" class="form-label"
+                >Tambah Sub Kategori Baru</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="new_subcategory"
+                name="new_subcategory"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-secondary">
+              Tambah Sub Kategori
+            </button>
+          </form>
+        </div>
 
-      <!-- Grafik pengeluaran per kategori -->
-      <canvas
-        id="expenseChart"
-        style="max-width: 400px; max-height: 400px;"
-      ></canvas>
+        <!-- Tab untuk Form Pencatatan Pemasukan Uang -->
+        <div
+          class="tab-pane fade"
+          id="income-tab-pane"
+          role="tabpanel"
+          aria-labelledby="income-tab"
+        >
+          <!-- Form untuk mencatat pemasukan uang -->
+          <form action="{{ url_for('add_money') }}" method="post">
+            <div class="form-group">
+              <label for="amount">Nominal Pemasukan</label>
+              <input
+                type="number"
+                class="form-control"
+                id="amount"
+                name="amount"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">
+              Tambah Pemasukan
+            </button>
+          </form>
+
+          <!-- Tabel untuk menampilkan detail pemasukkan -->
+          <h2>Detail Pemasukkan</h2>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Jumlah Uang</th>
+                <th>Tanggal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for detail in income_details %}
+              <tr>
+                <td>Rp {{ "{:,.0f}".format(detail[0]) }}</td>
+                <td>{{ detail[1] }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+      // Event listener untuk dropdown sub-kategori dinamis
+      document.getElementById('main_category').addEventListener('change', function() {
+          const mainCategory = this.value;
+          const subCategoryDropdown = document.getElementById('sub_category');
+
+          if (mainCategory) {
+              subCategoryDropdown.disabled = false;
+              fetch(`/subcategories/${mainCategory}`)
+                  .then(response => response.json())
+                  .then(data => {
+                      subCategoryDropdown.innerHTML = '<option value="">Pilih Sub Kategori</option>';
+                      data.subcategories.forEach(subcategory => {
+                          subCategoryDropdown.innerHTML += `<option value="${subcategory}">${subcategory}</option>`;
+                      });
+                  });
+          } else {
+              subCategoryDropdown.disabled = true;
+              subCategoryDropdown.innerHTML = '<option value="">Pilih Sub Kategori</option>';
+          }
+      });
+
       // Grafik pengeluaran
       var ctx = document.getElementById('expenseChart').getContext('2d');
       var expenseChart = new Chart(ctx, {

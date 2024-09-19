@@ -45,12 +45,16 @@ def index():
     total_expenses = sum([expense[3] for expense in expenses])
     remaining_money = user_money - total_expenses
 
+    # Ambil detail pemasukkan
+    cur.execute("SELECT jumlah_uang, tanggal FROM coro.detail_pemasukkan ORDER BY tanggal DESC;")
+    income_details = cur.fetchall()
+
     conn.close()
 
     categories_list = [cat[0] for cat in category_totals]
     amounts = [cat[1] for cat in category_totals]
 
-    return render_template('index.html', expenses=expenses, categories=categories_list, amounts=amounts, remaining_money=remaining_money)
+    return render_template('index.html', expenses=expenses, categories=categories_list, amounts=amounts, remaining_money=remaining_money, income_details=income_details)
 
 @app.route('/subcategories/<main_category>')
 def get_subcategories(main_category):
@@ -74,7 +78,7 @@ def add_expense():
     description = request.form.get('description')
     main_category = request.form.get('main_category')
     sub_category = request.form.get('sub_category')
-    amount = request.form.get('amount')
+    amount = request.form.get('expense_amount')
 
     conn = get_db_connection()
     cur = conn.cursor()
@@ -102,11 +106,27 @@ def add_expense():
 def add_money():
     amount = request.form.get('amount')
 
+    # Pastikan amount tidak kosong dan merupakan angka
+    if not amount or not amount.replace('.', '', 1).isdigit():
+        return redirect(url_for('index'))
+
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # Ambil jumlah uang terakhir
+    cur.execute("SELECT jumlah_uang FROM coro.uang_pengguna ORDER BY tanggal DESC LIMIT 1;")
+    last_amount = cur.fetchone()
+    last_amount = last_amount[0] if last_amount else 0
+
+    # Tambah jumlah uang baru ke jumlah uang terakhir
+    new_amount = float(last_amount) + float(amount)
+
     # Masukkan jumlah uang pengguna baru
-    cur.execute("INSERT INTO coro.uang_pengguna (jumlah_uang) VALUES (%s)", (amount,))
+    cur.execute("INSERT INTO coro.uang_pengguna (jumlah_uang) VALUES (%s)", (new_amount,))
+
+    # Masukkan detail pemasukkan
+    cur.execute("INSERT INTO coro.detail_pemasukkan (jumlah_uang) VALUES (%s)", (amount,))
+
     conn.commit()
     conn.close()
 

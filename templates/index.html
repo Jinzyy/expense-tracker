@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1>Expense Tracker</h1>
+
+      <!-- Form untuk menambahkan jumlah uang pengguna -->
+      <form action="/add_money" method="POST" class="mb-4">
+        <div class="mb-3">
+          <label for="amount" class="form-label">Masukkan Uang Anda</label>
+          <input
+            type="number"
+            class="form-control"
+            id="amount"
+            name="amount"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-primary">Simpan Uang</button>
+      </form>
+
+      <!-- Form untuk menambahkan kategori kustom -->
+      <form action="/add_category" method="POST" class="mb-4">
+        <div class="mb-3">
+          <label for="new_category" class="form-label"
+            >Tambah Kategori Baru</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            id="new_category"
+            name="new_category"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-secondary">Tambah Kategori</button>
+      </form>
+
+      <!-- Form untuk menambahkan sub kategori kustom -->
+      <form action="/add_subcategory" method="POST" class="mb-4">
+        <div class="mb-3">
+          <label for="main_category" class="form-label">Kategori Utama</label>
+          <select
+            id="main_category"
+            name="main_category"
+            class="form-select"
+            required
+          >
+            <option value="">Pilih Kategori</option>
+            {% for category in categories %}
+            <option value="{{ category }}">{{ category }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="new_subcategory" class="form-label"
+            >Tambah Sub Kategori Baru</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            id="new_subcategory"
+            name="new_subcategory"
+            required
+          />
+        </div>
+        <button type="submit" class="btn btn-secondary">
+          Tambah Sub Kategori
+        </button>
+      </form>
+
+      <!-- Tabel pengeluaran -->
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Deskripsi</th>
+            <th scope="col">Kategori</th>
+            <th scope="col">Sub Kategori</th>
+            <th scope="col">Nominal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for expense in expenses %}
+          <tr>
+            <td>{{ expense[0] }}</td>
+            <td>{{ expense[1] }}</td>
+            <td>{{ expense[2] }}</td>
+            <td>{{ expense[3] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Menampilkan sisa uang pengguna -->
+      <h4>Sisa Uang Anda: {{ remaining_money }}</h4>
+
+      <!-- Grafik pengeluaran per kategori -->
+      <canvas
+        id="expenseChart"
+        style="max-width: 400px; max-height: 400px;"
+      ></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // Grafik pengeluaran
+      var ctx = document.getElementById('expenseChart').getContext('2d');
+      var expenseChart = new Chart(ctx, {
+          type: 'pie',
+          data: {
+              labels: {{ categories|tojson }},
+              datasets: [{
+                  data: {{ amounts|tojson }},
+                  backgroundColor: [
+                      'rgba(255, 99, 132, 0.2)',
+                      'rgba(54, 162, 235, 0.2)',
+                      'rgba(255, 206, 86, 0.2)',
+                      'rgba(75, 192, 192, 0.2)',
+                      'rgba(153, 102, 255, 0.2)',
+                  ],
+                  borderColor: [
+                      'rgba(255, 99, 132, 1)',
+                      'rgba(54, 162, 235, 1)',
+                      'rgba(255, 206, 86, 1)',
+                      'rgba(75, 192, 192, 1)',
+                      'rgba(153, 102, 255, 1)',
+                  ],
+                  borderWidth: 1
+              }]
+          }
+      });
+    </script>
+  </body>
+</html>
